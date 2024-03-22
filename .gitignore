@@ -1,0 +1,15 @@
+/node_modules
+/public/hot
+/public/storage/img/avatar
+/public/storage/img/bukti-bayar
+/public/assets/img/payment-instruction/*.psd
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
