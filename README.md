@@ -1,4 +1,4 @@
-![image](https://github.com/Jundix/pembayaran-pam/assets/56110716/4e99d30a-abac-4364-a591-6f69aada71fb)![image](https://github.com/Jundix/pembayaran-pam/assets/56110716/b3132cd5-8b43-4c3b-a2a0-7614552380bb)![image](https://github.com/Jundix/pembayaran-pam/assets/56110716/ddfbd28e-24e4-446c-b596-3df1e47b4ee2)<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 <!--
 *** Thanks for checking out the Best-README-Template. If you have a suggestion
