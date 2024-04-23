@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\Bill;
-use App\Models\Payment;
+use Illuminate\Routing\Controller as BaseController;
+use App\Models\Tagihan;
+use App\Models\Pembayaran;
 use App\Models\PaymentHistory;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
-use App\Charts\YearlyEarnings;
+use App\Chart\YearlyEarnings;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
  * melihat jumlah pendapatan, total pembayaran, tagihan listrik lunas,
  * dan tagihan listrik belum lunas
  */
-class DashboardController extends Controller
+class DashboardController extends BaseController
 {
     /**
      * Method ini digunakan untuk menampilkan halaman dashboard admin
@@ -25,42 +25,21 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         //Hitung total pendapatan
-        $payments = Payment::where('status', 'success')->get();
-        $totalPendapatan = $payments->sum('total_bayar');
+        $pembayaran = Tagihan::where('status', '1')->get();
+        $totalPendapatan = $pembayaran->sum('jumlah_bayar');
         $totalPendapatan = 'Rp '. number_format($totalPendapatan, 2, ',', '.');
 
-        //ambil pendapatan bulan ini dari stored function yang telah dibuat di database
-        // $monthEarnings = DB::select('SELECT getMonthEarnings() AS pendapatan_bulan_ini');
-        // if(empty($monthEarnings)){
-        //     $monthEarnings = 0;
-        // }else{
-        //     $monthEarnings = $monthEarnings[0]->pendapatan_bulan_ini;
-        //     $monthEarnings = 'Rp '. number_format($monthEarnings, 2, ',', '.');
-        // }
-        $bills = Bill::get();
-
-        if($request->ajax()){
-            $paymentHistories = PaymentHistory::with(['payment', 'payment.paymentMethod'])
-                                                ->when(auth()->user()->isBank(), function($query) {
-                                                    return 
-                                                    $query->whereHas('payment.paymentMethod', function(Builder $query) {
-                                                        $bankName = explode(" ", auth()->user()->username);
-                                                        $query->where('nama', 'like' ,'%'.$bankName[1].'%');
-                                                    });
-                                                })->get();
-            return DataTables::of($paymentHistories)
-                               ->toJson();
-        }
+        $bills = Tagihan::get();
 
         $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
         $data = [];
         foreach ($months as $index => $month) {
-            $data[$index] = Payment::where('status', 'success')
+            $data[$index] = Tagihan::where('status', '1')
                                    ->whereYear('created_at', now()->year)
                                    ->whereMonth('created_at', $index)
                                    ->get()
-                                   ->sum('total_bayar');
+                                   ->sum('jumlah_bayar');
         }
 
         $chart = new YearlyEarnings;
@@ -76,7 +55,7 @@ class DashboardController extends Controller
                                 ]
                             ]
                         ], true);
-        return view('pages.admin.index', compact('totalPendapatan', 'bills', 'payments', 'chart'));
+        return view('pages.admin.index', compact('totalPendapatan', 'bills', 'pembayaran', 'chart'));
     }
 
     /**

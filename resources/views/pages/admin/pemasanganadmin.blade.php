@@ -3,34 +3,37 @@
 @section('title', 'Pemasangan')
 
 @section('content')
-<div class="container-fluid mb-3">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" />
 
-  <!--<div class="d-flex justify-content-between mb-4">
-    <h3>Pelaporan Air</h3>
-    <a href="{{route('admin.pln-customers.create')}}" class="btn btn-primary-custom">
-      <i class="fas fa-plus"></i>
-      Tambah
-    </a>
-  </div>-->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css" />
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<div class="container-fluid mb-3">
+<h3 class="mb-4">Pemasangan</h3>
   <div class="card">
     <div class="card-body">
-      @foreach ($pemasang as $item)
-      <table class="table table-striped table-bordered w-100" id="customers">
+    <table class="table table-striped table-bordered w-100" id="example">
         <thead>
-          <tr>
+
             <th>ID</th>
             <th>Nama</th>
             <th>Alamat</th>
             <th>Foto KTP</th>
             <th>Action</th>
-          </tr>
+
         </thead>
+        <tbody>
+      @foreach ($pemasang as $item)
         <td>{{$item->id}}</td>
         <td>{{$item->nama}}</td>
         <td>{{$item->alamat}}</td>
         <td><img src="{{ asset('post-ktp/' . $item->gambar) }}" alt="ktp ni bro" style="max-height: 200px; overflow:hiden;"> </td>
         <td>
-          <form action="/pemasangans/createpelanggan" method="POST" enctype="multipart/form-data">
+          <form action="/admin/pemasangan/createpelanggan" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-row" hidden>
               <div class="form-group col-md-12">
@@ -50,6 +53,15 @@
                 @enderror
               </div>
             </div>
+            <div class="form-row" hidden>
+              <div class="form-group col-md-12">
+                <label for="inputNama">Nama Pelanggan <span class="text-danger">*</span></label>
+                <input type="text" name="kategori" class="form-control @error('nama') is-invalid @enderror" id="inputNama" value="{{$item->id_kategori}}" placeholder="Masukkan nama">
+                @error('nama')
+                <span class="invalid-feedback">{{ $message }}</span>
+                @enderror
+              </div>
+            </div>
             <div class="form-group" hidden>
               <label for="inputAlamat">Alamat</label>
               <textarea name="alamat" class="form-control @error('alamat') is-invalid @enderror" id="inputAlamat" placeholder="Masukkan alamat">{{$item->alamat}}</textarea>
@@ -57,132 +69,18 @@
               <span class="invalid-feedback">{{$message}}</span>
               @enderror
             </div>
-            <button type="submit" class="btn btn-success btn-sm">Submit</button> 
-            <a href="/pemasangans/hapus/{{$item->id}}" onclick="return confirm('Apakah Data Pelanggan Ditolak?');" class="btn btn-danger btn-sm">Tolak</a>
+            <button type="submit" class="btn btn-success btn-sm">Terima</button>
+            <a href="/admin/pemasangan/hapus/{{$item->id}}" onclick="return confirm('Apakah Data Pelanggan Ditolak?');" class="btn btn-danger btn-sm">Tolak</a>
           </form>
         </td>
+        @endforeach
+        </tbody>
       </table>
-      @endforeach
+
     </div>
   </div>
-
 </div>
+<script>$(document).ready( function () {
+    $('#example').DataTable();
+} );</script>
 @endsection
-
-@push('addon-script')
-<!--<script>
-    let dtButtons = $.extend(true, [], $.fn.dataTable.defaults.buttons);
-    let selectAllButton = {
-      text: 'Select All',
-      action: function () {
-        table.rows().select();
-      }
-    }
-
-    let deselectButton = {
-      text: 'Deselect All',
-      className: 'mx-md-2',
-      action: function () {
-        table.rows().deselect();
-      }
-    }
-
-    let deleteButton = {
-      text: 'Delete Selected',
-      extend: 'selected',
-      url: "{{ route('admin.pln-customers.massDestroy') }}",
-      className: 'btn-danger',
-      key: String.fromCharCode(46),
-      action: function(e, dt, node, config){
-        let ids = $.map(dt.rows({selected: true}).data(), function(entry) {
-          return entry.id;
-        })
-
-        if(ids.length === 0) {
-          Swal.fire({
-            title: 'Tidak ada data yang dipilih!',
-            icon: 'warning',
-            confirmButtonColor: '#3085d6',
-          })
-          return;
-        }
-
-        Swal.fire({
-          title: 'Apakah kamu yakin ingin menghapusnya?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'ya!'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            $.ajax({
-              headers: {"x-csrf-token": "{{ csrf_token() }}"},
-              method: 'POST',
-              url: config.url,
-              data: {ids: ids, _method: 'DELETE'}
-            }).done(function(){ location.reload() });
-          }
-        })
-
-      }
-    }
-
-    dtButtons.push([selectAllButton, deselectButton, deleteButton ]);
-
-    let table = $('#customers').DataTable({
-        select: {
-          style: 'multi',
-          selector: 'td:first-child',
-        },
-        dom: 'Bfrtip',
-        buttons: dtButtons,
-        responsive: true,
-        serverSide: true,
-        ajax: "{{ route('admin.pln-customers.index') }}",
-        columnDefs: [{
-          orderable: false,
-          className: 'select-checkbox',
-          targets: 0,
-          defaultContent: '',
-        }],
-        columns: [
-            {data: null},
-            {data: 'id'},
-            {data: 'nama_pelanggan'},
-            {data: 'nomor_meter'},
-            {data: 'alamat',
-              render: function ( data, type, row ) {
-              return data.length > 30 ?
-                data.substr( 0, 30 ) +'…' :
-                data;
-            }},
-            {data: 'tariff.golongan_tarif',
-              render: function(data, type, row) {
-                return data + '/' + row.tariff.daya + ' VA'
-              }
-            },
-            {data: 'action', searchable: false, orderable: false},
-        ],
-    });
-
-    $("#customers").on("click.dt", ".btn-delete", function(e){
-      /*cek apakah yang diklik adalah tombol delete, 
-      jika true maka tampilkan alert konfirmasi*/
-      e.preventDefault();
-      Swal.fire({
-        title: 'Apakah kamu yakin ingin menghapusnya?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'ya!',
-        cancelButtonText: 'Batal',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          $(e.target).parent().submit();
-        }
-      })
-    });
-  </script>-->
-@endpush

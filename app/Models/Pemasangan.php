@@ -21,27 +21,7 @@ class Pemasangan extends Model
         // 'id_kota'
         'nama', 
         'alamat', 
-        'gambar'
-        // 'Verivikasi'
+        'gambar',
+        'id_kategori'
     ];
-
-    public function tariff()
-    {
-        return $this->belongsTo(Tariff::class, 'id_tarif');
-    }
-
-    public function usages()
-    {
-        return $this->hasMany(Usage::class, 'id_pelanggan_pln');
-    }
-
-    public function city()
-    {
-        return $this->belongsTo(IndonesiaCity::class, 'id_kota');
-    }
-
-    public function payments()
-    {
-        return $this->hasMany(Payment::class, 'id_pelanggan_pln');
-    }
 }

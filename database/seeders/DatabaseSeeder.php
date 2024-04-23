@@ -2,32 +2,33 @@
 
 namespace Database\Seeders;
 
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Laravolt\Indonesia\Seeds\CitiesSeeder;
-use Laravolt\Indonesia\Seeds\ProvincesSeeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
-        $this->call(TariffSeeder::class);
-        $this->call(LevelSeeder::class);
-        $this->call(ProvincesSeeder::class);
-        $this->call(CitiesSeeder::class);
-        $this->call(PlnCustomerSeeder::class);
-        $this->call(UserSeeder::class);
-        // $this->call(UsageSeeder::class);
-        // $this->call(BillSeeder::class);
-        $this->call(PaymentMethodSeeder::class);
-        // $this->call(PaymentSeeder::class);
-        $this->call(PermissionSeeder::class);
-        $this->call(PermissionLevelSeeder::class);
-        $this->call(TaxTypeSeeder::class);
-        $this->call(TaxRateSeeder::class);
+        // \App\Models\User::factory(10)->create();
+
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Test User',
+        //     'email' => 'test@example.com',
+        // ]);
+        $this->call(IndonesiaCitiesTableSeeder::class);
+        $this->call(IndonesiaDistrictsTableSeeder::class);
+        $this->call(IndonesiaProvincesTableSeeder::class);
+        $this->call(IndonesiaVillagesTableSeeder::class);
+        $this->call(KategoriPelangganTableSeeder::class);
+        $this->call(LevelsTableSeeder::class);
+        $this->call(LevelPermissionTableSeeder::class);
+        $this->call(PaymentMethodsTableSeeder::class);
+        $this->call(PermissionsTableSeeder::class);
+        $this->call(TaxRatesTableSeeder::class);
+        $this->call(TaxTypesTableSeeder::class);
+        $this->call(UsersTableSeeder::class);
     }
 }

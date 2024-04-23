@@ -13,7 +13,7 @@
     <div class="auth-form container h-100 d-flex justify-content-center align-items-center">
       <div div class="card p-3">
         <div class="card-body">
-          <form action="{{ route('register') }}" method="POST" class="form-row align-items-center">
+          <form action="{{ route('doregister') }}" method="POST" class="form-row align-items-center">
             @csrf
             <div class="col-12 col-md-6">
               <h1>Buat Akun</h1>
@@ -43,8 +43,8 @@
                 @enderror
               </div>
               <div class="form-group mb-3">
-                <input type="text" name="no" class="form-control @error('no') is-invalid @enderror" id="no" placeholder="Nomor HP" value="{{ old('no') }}">
-                @error('no')
+                <input type="text" name="no_hp" class="form-control @error('no_hp') is-invalid @enderror" id="no" placeholder="Nomor HP" value="{{ old('no') }}">
+                @error('no_hp')
                   <span class="invalid-feedback text-danger">{{ $message }}</span>    
                 @enderror
               </div>

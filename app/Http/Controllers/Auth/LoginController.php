@@ -2,130 +2,52 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ActivityLog;
-use Illuminate\Validation\ValidationException;
 use Session;
 
-class LoginController extends Controller
+class LoginController extends BaseController
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
+    use AuthorizesRequests, ValidatesRequests;
 
-    use AuthenticatesUsers;
-
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = RouteServiceProvider::HOME;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    public function index()
     {
-        $this->middleware('guest')->except('logout');
+        return view('auth.login');
     }
 
     public function login(Request $request)
     {
-        $this->validateLogin($request);
-        
-        if (method_exists($this, 'hasTooManyLoginAttempts') &&
-            $this->hasTooManyLoginAttempts($request)) {
-            $this->fireLockoutEvent($request);
+        $attributes = request()->validate([
+            'email'=>'required',
+            'password'=>'required' 
+        ]);
 
-            return $this->sendLockoutResponse($request);
-        }
-
-        if ($this->attemptLogin($request)) {
-            ActivityLog::create([
-                'id_user' => auth()->user()->id,
-                'tabel_referensi' => '-',
-                'id_referensi' => null,
-                'deskripsi' => 'User login',
-            ]);
+        if(Auth::attempt($attributes))
+        {
+            $user = Auth::User();
             Session::put('id', auth()->user()->id);
             Session::put('level', auth()->user()->id_level);
             session()->regenerate();
-            return $this->sendLoginResponse($request);
+            if(auth()->user()->id_level == 2){
+                return redirect('/');
+            }else{
+                return redirect('/admin');
+            }
         }
+        else{
 
-        $this->incrementLoginAttempts($request);
-
-        return $this->sendFailedLoginResponse($request);
+            return back()->withErrors(['email'=>'Email or password invalid.']);
+        }
     }
 
-    protected function sendLoginResponse(Request $request)
+    public function logout()
     {
-        $request->session()->regenerate();
-
-        $this->clearLoginAttempts($request);
-
-        if ($response = $this->authenticated($request)) {
-            return $response;
-        }
-
-        return $request->wantsJson()
-                    ? new JsonResponse([], 204)
-                    : $this->checkUserLevel();
-    }
-
-    public function logout(Request $request)
-    {
-        ActivityLog::create([
-            'id_user' => auth()->user()->id,
-            'tabel_referensi' => '-',
-            'id_referensi' => null,
-            'deskripsi' => 'User logout',
-        ]);
-        
-        $userLevel = auth()->user()->id_level;
+        Session::forget('id');
+        Session::forget('level');
         Auth::logout();
-        
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return  $userLevel === 2 ? 
-               redirect()->route('home') :
-               redirect()->route('login');
-    }
-
-    protected function authenticated(Request $request)
-    {
-        Auth::logoutOtherDevices($request->password);
-    }
-
-    protected function sendFailedLoginResponse(Request $request)
-    {
-        throw ValidationException::withMessages([
-            $this->username() => [__('auth.failed')],
-            'password' => [__('auth.password')],
-        ]);
-    }
-    
-    private function checkUserLevel()
-    {
-        if(auth()->user()->isAdmin() || auth()->user()->isBank()){
-            return redirect()->intended('/admin');
-        }
-
-        return redirect()->route('home');
+        return redirect('/login')->with(['success'=>'You\'ve been logged out.']);
     }
 }

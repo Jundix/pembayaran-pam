@@ -18,6 +18,7 @@ return [
         'domain' => env('MAILGUN_DOMAIN'),
         'secret' => env('MAILGUN_SECRET'),
         'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
+        'scheme' => 'https',
     ],
 
     'postmark' => [
@@ -29,10 +30,5 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
-    'google' => [
-        'client_id' => '560047199479-nkrqae2dt1ee7t53ok5nqd6iql698hva.apps.googleusercontent.com',
-        'client_secret' => 'XOUnjLm6U22Q2deGwnUZ_MpC',
-        'redirect' => 'http://megamendung.herokuapp.com/auth/google/callback',
-    ], 
 
 ];

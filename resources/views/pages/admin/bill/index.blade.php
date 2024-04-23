@@ -17,41 +17,32 @@
   <h3 class="mb-4">Tagihan Air</h3>
   <div class="card">
     <div class="card-body table-responsive">
-      <table class="table table-striped table-bordered w-100"  id="bills">
-      <thead>
+    <table class="table table-striped table-bordered w-100" id="example">
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Bulan</th>
+            <th>Penggunaan</th>
+            <th>Jumlah yang Dibayarkan</th>
+            <th>Status</th>
+          
+        @foreach ($tagihan as $item)
         <tr>
-          <th>ID</th>
-          <th>ID Penggunaan</th>
-          <th>Bulan</th>
-          <th>Tahun</th>
-          <th>Jumlah</th>
-          <th>Status</th>
+        <td>{{$item->id}}</td>
+        <td>{{$item->nama_pelanggan}}</td>
+        <td>{{$item->bulan}} {{$item->tahun}}</td>
+        <td>{{$item->jumlah_penggunaan}}</td>
+        <td>{{$item->jumlah_bayar}}</td>
+        <td>
+          @if($item->status == 0)
+          Belum Dibayarkan
+          @else
+          Lunas
+          @endif
+        </td>
         </tr>
-      </thead>
-    </table>
+            @endforeach
+      </table>
     </div>
   </div>
 </div>
 @endsection
-
-@push('addon-script')
-  <script>
-    $('#bills').DataTable({
-        responsive: true,
-        serverSide: true,
-        ajax: "",
-        columns: [
-            {data: 'id'},
-            {data: 'id_penggunaan'},
-            {data: 'bulan'},
-            {data: 'tahun'},
-            {data: 'jumlah_kwh'},
-            {data: 'status',
-              render: function(data, type, row){
-                return `<span class='badge badge-pill 
-                        badge-${(data == 'BELUM LUNAS') ? 'danger' : 'success'}'>${data}</span>`;
-            }}
-        ]
-    });
-  </script>
-@endpush

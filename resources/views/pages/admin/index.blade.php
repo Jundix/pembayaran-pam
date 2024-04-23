@@ -10,7 +10,6 @@
   <div class="container-fluid">
     <div class="row justify-content-center">
       <!-- Total Revenue Overview -->
-      @if (auth()->user()->isAdmin())
         <div class="col-12 col-md-6 col-lg-3 mb-3">
           <div class="card card-overview">
             <div class="card-body">
@@ -29,11 +28,9 @@
             </div>
           </div>
         </div>
-      @endif
       <!-- End of Total Revenue Overview -->
 
       <!-- Total Payment Overview -->
-      @if (auth()->user()->isAdmin())
         <div class="col-12 col-md-6 col-lg-3 mb-3">
           <div class="card card-overview">
             <div class="card-body">
@@ -42,35 +39,19 @@
                   <img src="{{ asset('assets/img/mm-icon/payment-icon@2x.png') }}" alt="Payment Icon" width="65" height="65">
                 </div>
                 <div class="col-8">
-                  <h6 class="font-weight-bold">{{$payments->count()}}</h6>
+                  <h6 class="font-weight-bold">{{$pembayaran->count()}}</h6>
                   Total pembayaran
                 </div>
               </div>
             </div>
           </div>
         </div>
-      @else
-        <div class="col-12 col-md-6 col-lg-4 mb-3">
-          <div class="card card-overview">
-            <div class="card-body">
-              <div class="row align-items-center h-100">
-                <div class="col-4">
-                  <img src="{{ asset('assets/img/mm-icon/payment-icon@2x.png') }}" alt="Payment Icon" width="65" height="65">
-                </div>
-                <div class="col-8">
-                  <h6 class="font-weight-bold">{{$payments->count()}}</h6>
-                  <div>Total pembayaran</div>
-                  <a href="{{route('admin.payments.index')}}" class="text-decoration-none">Lihat detail pembayaran</a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      @endif
+      
+        
       <!-- End of Total Payment Overview -->
 
       <!-- Bill Paid Off Overview -->
-      @if(auth()->user()->isAdmin())
+      
         <div class="col-12 col-md-6 col-lg-3 mb-3">
           <div class="card card-overview">
             <div class="card-body">
@@ -79,18 +60,18 @@
                   <img src="{{ asset('assets/img/mm-icon/bill-paid-off-icon@2x.png') }}" alt="Payment Icon" width="65" height="65">
                 </div>
                 <div class="col-8">
-                  <h6 class="font-weight-bold">{{$bills->where('status', 'LUNAS')->count()}}</h6>
+                  <h6 class="font-weight-bold">{{$bills->where('status', '1')->count()}}</h6>
                   Tagihan Air lunas
                 </div>
               </div>
             </div>
           </div>
         </div>
-      @endif
+      
       <!-- End of Bill Paid Off Overview -->
 
       <!-- Bill Not Paid Off Overview -->
-      @if(auth()->user()->isAdmin())
+      
         <div class="col-12 col-md-6 col-lg-3 mb-3">
           <div class="card card-overview">
             <div class="card-body">
@@ -99,17 +80,14 @@
                   <img src="{{ asset('assets/img/mm-icon/bill-not-paid-off-icon@2x.png') }}" alt="Payment Icon" width="65" height="65">
                 </div>
                 <div class="col-8">
-                  <h6 class="font-weight-bold">{{$bills->where('status', 'BELUM LUNAS')->count()}}</h6>
+                  <h6 class="font-weight-bold">{{$bills->where('status', '0')->count()}}</h6>
                   Tagihan Air belum lunas
                 </div>
               </div>
             </div>
           </div>
         </div>
-      @endif
-
-      {{-- Grafik pendapatan tahunan --}}
-      @if (auth()->user()->isAdmin())
+      
         <div class="col-12">
           <div class="card">
             <div class="card-body">
@@ -117,9 +95,9 @@
             </div>
           </div>
         </div>
-      @endif
+      
       <!-- End of Bill Not Paid Off Overview -->
-      <div class="col-12">
+      <!-- <div class="col-12">
         <h2 class="text-center mt-5">Histori Pembayaran</h2>
         <div class="card my-5 ">
           <div class="card-body table-responsive">
@@ -141,49 +119,10 @@
             </table>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 @endsection
 @push('addon-script')
-  {!! $chart->script() !!}
-  <script>
-    console.log(window);
-    $('#paymentHistories').DataTable({
-        responsive: true,
-        serverSide: true,
-        ajax: "",
-        columns: [
-            {data: 'id'},
-            {data: 'nama'},
-            {data: 'nama_pelanggan'},
-            {data: 'id_tagihan'},
-            {data: 'tanggal_bayar'},
-            {data: 'biaya_admin',
-             render: $.fn.dataTable.render.number('.', ',', 2, 'Rp ')
-            },
-            {data: 'denda',
-             render: $.fn.dataTable.render.number('.', ',', 2, 'Rp ')
-            },
-            {data: 'total_bayar',
-             render: $.fn.dataTable.render.number('.', ',', 2, 'Rp ')
-            },
-            {data: 'payment.payment_method.nama', defaultContent: '-'},
-            {data: 'status',
-              render: function(data, type, row){
-                let state;
-                if(data == 'success'){
-                  state = 'success';
-                }else if(data == 'pending'){
-                  state = 'warning';
-                }else{
-                  state = 'danger';
-                }
-                return `<span class='badge badge-pill 
-                        badge-${state}'>${data}</span>`;
-              }
-            },
-        ]
-    });
-  </script>
+  {!! $chart->script() !!}  
 @endpush

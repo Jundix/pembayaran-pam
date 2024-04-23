@@ -2,172 +2,145 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\invoice;
-use Jenssegers\Agent\Facades\Agent;
-use Session;
+use App\Models\Tagihan;
+use App\Models\Penggunaan;
+use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
+use Session;
 
-class HomeController extends Controller
+class HomeController extends BaseController
 {
-    /**
-     * Untuk menampilkan halaman home
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function __construct()
-    {
-        $this->middleware(['auth','verified']);
-    }
-
+    use AuthorizesRequests, ValidatesRequests;
 
     public function index()
     {
-        if(Agent::isMobile()){
-            return view('pages.pelanggan.index-mobile');
-        }
-        // print_r(session()->all());
-        return view('pages.pelanggan.index');
-    }
+        $snapToken=null;
+        $id_pembayaran=null;
+        $tagihan = DB::table('tagihans')
+        ->select('tagihans.id','pelanggans.nama_pelanggan','penggunaans.bulan','penggunaans.tahun','tagihans.jumlah_penggunaan', 'tagihans.jumlah_bayar', 'tagihans.status')
+        ->join('penggunaans', 'penggunaans.id', '=', 'tagihans.id_penggunaan')
+        ->join('pelanggans', 'pelanggans.id', '=', 'penggunaans.id_pelanggan')
+        ->join('users', 'users.nama', '=', 'pelanggans.nama_pelanggan')
+        ->where('users.id',Session::get('id'))
+        ->where('tagihans.status','0')
+        ->get();
 
-    /**
-     * Untuk menampilkan halaman about us
-     *
-     */
-    public function aboutUs()
-    {
-        return view('pages.pelanggan.about-us');
-    }
+        $payment = DB::table('tagihans')
+        ->select('tagihans.id','pelanggans.nama_pelanggan','penggunaans.bulan','penggunaans.tahun','tagihans.jumlah_penggunaan', 'tagihans.jumlah_bayar', 'tagihans.status')
+        ->join('penggunaans', 'penggunaans.id', '=', 'tagihans.id_penggunaan')
+        ->join('pelanggans', 'pelanggans.id', '=', 'penggunaans.id_pelanggan')
+        ->join('users', 'users.nama', '=', 'pelanggans.nama_pelanggan')
+        ->where('users.id',Session::get('id'))
+        ->where('tagihans.status','0')
+        ->get()->first();
 
-    public function profile()
-    {
-        return view('pages.pelanggan.profile');
-    }
+        if($payment){
+            $id_pembayaran = $payment->id;
+                
+            \Midtrans\Config::$serverKey = config('midtrans.server_key');
+            // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
+            \Midtrans\Config::$isProduction = config('midtrans.is_production');
+            // Set sanitization on (default)
+            \Midtrans\Config::$isSanitized = true;
+            // Set 3DS transaction for credit card to true
+            \Midtrans\Config::$is3ds = true;
 
-    /**
-     * Halaman Frequently Ask Question
-     */
-    public function faq()
-    {
-        return view('pages.pelanggan.faq');
-    }
+            $params = array(
+                'transaction_details' => array(
+                    'order_id' => $payment->id,
+                    'gross_amount' => $payment->jumlah_bayar,
+                ),
+                'customer_details' => array(
+                    'first_name' => $payment->nama_pelanggan,
+                    'last_name' => ''
+                    // 'email' => 'budi.pra@example.com',
+                    // 'phone' => '08111222333',
+                ),
+            );
 
-    /**
-     * Halaman How To Pay
-     */
-    public function howToPay()
-    {
-        return view('pages.pelanggan.how-to-pay');
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+                    // dd($snapToken);
+
+    }
+        return view('pages.pelanggan.index', compact('tagihan', 'snapToken', 'id_pembayaran'));
     }
 
     public function Pemasangan()
     {
         $users = DB::table('users')->where('id', Session::get('id'))->get();
-        return view('pages.pelanggan.pemasangan', compact('users'));
+        $kategori = DB::table('kategori_pelanggan')->get();
+        return view('pages.pelanggan.pemasangan', compact('users', 'kategori'));
     }
-
     public function Pemutusan()
     {
         $users = DB::table('users')
-        ->join('pln_customers','users.nama', '=', 'pln_customers.nama_pelanggan')
+        ->join('pelanggans','users.nama', '=', 'pelanggans.nama_pelanggan')
         ->where('users.id', Session::get('id'))->get();
         return view('pages.pelanggan.pemutusan', compact('users'));
     }
 
-    public function Pelaporan()
+    public function aboutUs()
     {
-        return view('pages.pelanggan.pelaporan');
+        return view('pages.pelanggan.about-us');
     }
 
-    public function Pembayaran()
+    public function invoice($id)
     {
-        $pembayaran = DB::table(\DB::raw('(SELECT usages.id, pln_customers.nama_pelanggan, usages.bulan, pln_customers.nomor_meter as id_pelanggan,
-        (usages.meter_akhir - usages.meter_awal)*tariffs.tarif_per_kwh as tagihan, 7000 as pemeliharaan
-        FROM `usages` inner join pln_customers on usages.id_pelanggan_pln = pln_customers.id INNER JOIN tariffs on pln_customers.id_tarif = tariffs.id) as pembayaran'))
-        ->select('id','id_pelanggan', 'nama_pelanggan', \DB::raw('round(tagihan) as tagihan'), 'pemeliharaan', \DB::raw('round(tagihan + (tagihan*0.11)) as total_bayar'),
-         \DB::raw('case when
-         bulan = "1" then "Januari"
-         when bulan = "2" then "Februari"
-         when bulan = "3" then "Maret"
-         when bulan = "4" then "April"
-         when bulan = "5" then "Mei"
-         when bulan = "6" then "Juni"
-         when bulan = "7" then "Juli"
-         when bulan = "8" then "Agustus"
-         when bulan = "9" then "September"
-         when bulan = "10" then "Oktober"
-         when bulan = "11" then "November"
-         when bulan = "12" then "Desember"
+        Tagihan::where('id',$id)->update([
+            'status' => '1',
+        ]);
+        $invoice = DB::table('tagihans')
+        ->select('tagihans.id','users.nama','pelanggans.nomor_meter','penggunaans.tahun','tagihans.jumlah_penggunaan', 'tagihans.jumlah_bayar', 'tagihans.status', \DB::raw('SUBSTRING(tagihans.updated_at, 9, 2) as tanggal'), \DB::raw('SUBSTRING(tagihans.updated_at, 12, 5) as jam'),
+        \DB::raw('case when
+         penggunaans.bulan = "1" then "Januari"
+         when penggunaans.bulan = "2" then "Februari"
+         when penggunaans.bulan = "3" then "Maret"
+         when penggunaans.bulan = "4" then "April"
+         when penggunaans.bulan = "5" then "Mei"
+         when penggunaans.bulan = "6" then "Juni"
+         when penggunaans.bulan = "7" then "Juli"
+         when penggunaans.bulan = "8" then "Agustus"
+         when penggunaans.bulan = "9" then "September"
+         when penggunaans.bulan = "10" then "Oktober"
+         when penggunaans.bulan = "11" then "November"
+         when penggunaans.bulan = "12" then "Desember"
          end as bulan'))
+        ->join('penggunaans', 'penggunaans.id', '=', 'tagihans.id_penggunaan')
+        ->join('pelanggans', 'pelanggans.id', '=', 'penggunaans.id_pelanggan')
+        ->join('users', 'users.nama', '=', 'pelanggans.nama_pelanggan')
+        ->where('tagihans.id',$id)
         ->get();
-
-        return view('pages.pelanggan.pembayaran', compact('pembayaran'));
-
-    }
-
-    public function invoice()
-    {
-
-        $invoice = invoice::all();
         return view('pages.pelanggan.invoice', compact('invoice'));
     }
 
-    public function callback(Request $request)
-    {
-        $serverKey = config('midtrans.server_key');
-        $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
-        if ($hashed == $request->signature_key) {
-            if ($request->transaction_status == 'capture' or $request->transaction_status == 'settlement') {
-                invoice::create($request->all());
-            }
-        }
+    public function pembayaran(){
+        $pembayaran = DB::table('tagihans')
+        ->select('tagihans.id','users.nama','pelanggans.nomor_meter','penggunaans.tahun','tagihans.jumlah_penggunaan', 'tagihans.jumlah_bayar', 'tagihans.status', \DB::raw('SUBSTRING(tagihans.updated_at, 9, 2) as tanggal'), \DB::raw('SUBSTRING(tagihans.updated_at, 12, 5) as jam'),
+        DB::raw('case when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."1 ".'then "Januari"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."2 ".'then "Februari"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."3 ".'then "Maret"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."4 ".'then "April"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."5 ".'then "Mei"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."6 ".'then "Juni"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."7 ".'then "Juli"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."8 ".'then "Agustus"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."9 ".'then "September"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."10 ".'then "Oktober"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."11 ".'then "November"'.
+        'when '.('SUBSTRING(tagihans.updated_at, 6, 2) ').'='."12 ".'then "Desember"'.
+        'end as bulan'))
+        ->join('penggunaans', 'penggunaans.id', '=', 'tagihans.id_penggunaan')
+        ->join('pelanggans', 'pelanggans.id', '=', 'penggunaans.id_pelanggan')
+        ->join('users', 'users.nama', '=', 'pelanggans.nama_pelanggan')
+        ->where('users.id',Session::get('id'))
+        ->where('tagihans.status','1')
+        ->orderBy('tagihans.updated_at')
+        ->get();
+        return view('pages.pelanggan.pembayaran', compact('pembayaran'));
     }
 
-    // public function invoice($id)
-    // {
-    //     $pembayaran = DB::table('karya')
-    //         ->select('')
-    //         ->join('')
-    //         ->join('')
-    //         ->where('')
-    //         ->get();
-    //     return view('');
-    // }
-
-    public function lanjutBayar(Request $request){
-        // $data = $request->input('nama')." - ".$request->input('id_pelanggan')." - ".$request->input('total_bayar');
-        // print_r($data);
-
-        $nama = $request->input('nama');
-        $total = $request->input('total_bayar');
-        $orderid = $request->input('id_order');
-
-        // Set your Merchant Server Key
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
-        // Set sanitization on (default)
-        \Midtrans\Config::$isSanitized = true;
-        // Set 3DS transaction for credit card to true
-        \Midtrans\Config::$is3ds = true;
-
-        $params = array(
-            'transaction_details' => array(
-                'order_id' => 102, //sementara pake data dummy bukan dari order id
-                'gross_amount' => $total,
-            ),
-            'customer_details' => array(
-                'first_name' => $nama,
-                'last_name' => ''
-                // 'email' => 'budi.pra@example.com',
-                // 'phone' => '08111222333',
-            ),
-        );
-
-        $snapToken = \Midtrans\Snap::getSnapToken($params);
-        // dd($snapToken);
-        return view('pages.pelanggan.lanjut_pembayaran', compact('snapToken'));
-
-    }
 
 }

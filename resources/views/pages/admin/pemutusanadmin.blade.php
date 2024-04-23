@@ -14,13 +14,6 @@
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
-  <!--<div class="d-flex justify-content-between mb-4">
-    <h3>Pelaporan Air</h3>
-    <a href="{{route('admin.pln-customers.create')}}" class="btn btn-primary-custom">
-      <i class="fas fa-plus"></i>
-      Tambah
-    </a>
-  </div>-->
   <div class="card">
     <div class="card-body">
       @foreach ($pemutus as $item)
@@ -39,7 +32,7 @@
         <td>{{$item->nama}}</td>
         <td>{{$item->alamat}}</td>
         <td>
-          <form action="pemutusans/customer" method="POST" enctype="multipart/form-data">
+          <form action="pemutusanpelanggan" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-row" hidden>
               <div class="form-group col-md-12">
@@ -57,9 +50,9 @@
               <span class="invalid-feedback">{{$message}}</span>
               @enderror
             </div>
-            <a href="{{ route('home') }}" class="btn btn-danger">Batal</a>
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>          
+            <button type="submit" class="btn btn-primary btn-sm">Terima</button>
+            <a href="/admin/pemutusan/hapus/{{$item->id}}" onclick="return confirm('Apakah Data Pemutusan Akan Ditolak?');" class="btn btn-danger btn-sm">Tolak</a>
+          </form>
         </td>
       </table>
       @endforeach
@@ -89,7 +82,7 @@
     let deleteButton = {
       text: 'Delete Selected',
       extend: 'selected',
-      url: "{{ route('admin.pln-customers.massDestroy') }}",
+      url: "",
       className: 'btn-danger',
       key: String.fromCharCode(46),
       action: function(e, dt, node, config){
@@ -138,7 +131,7 @@
         buttons: dtButtons,
         responsive: true,
         serverSide: true,
-        ajax: "{{ route('admin.pln-customers.index') }}",
+        ajax: "",
         columnDefs: [{
           orderable: false,
           className: 'select-checkbox',
@@ -166,7 +159,7 @@
     });
 
     $("#customers").on("click.dt", ".btn-delete", function(e){
-      /*cek apakah yang diklik adalah tombol delete, 
+      /*cek apakah yang diklik adalah tombol delete,
       jika true maka tampilkan alert konfirmasi*/
       e.preventDefault();
       Swal.fire({

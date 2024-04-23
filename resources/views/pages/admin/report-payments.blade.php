@@ -18,17 +18,18 @@
 <body class="bg-white">
   <nav class="navbar navbar-light">
     <span class="navbar-brand">
-      <img src="{{ public_path('assets/img/megamendung-logo.png') }}" height="80px" alt="" srcset="">
+      {{-- <img src="{{ public_path('assets/img/megamendung-logo.png') }}" height="80px" alt="" srcset=""> --}}
     </span>
-    <ul class="navbar-nav text-center">
+    <ul class="navbar-nav text-center"><br>
       <li class="nav-item">
-        Mega Mendung<br>
-        Ujung Harapan, JL. Al-Ikhlas 14 RT 007, RW 015 <br>
-        Telp : 088290051993
+        <br>
+        <br>
+        Dukuh Ringin <br>
+        Telp :
       </li>
     </ul>
   </nav>
-  <h1 class="text-center mb-3 title">Laporan Pembayaran Listrik Pascabayar</h1>
+  <h1 class="text-center mb-3 title">Laporan Pembayaran PAMSIMAS</h1><br>
   <p class="mb-0">
     @if ($request->action == 'print_per_date')
       Periode : {{ $request->print_per_date['tanggal_awal'] . ' sampai ' . $request->print_per_date['tanggal_akhir'] }}
@@ -51,26 +52,18 @@
     <thead>
       <tr>
         <th>No.</th>
-        <th>Nama Customer</th>
         <th>Nama Pelanggan</th>
         <th>Tanggal Bayar</th>
-        <th>Biaya Admin</th>
         <th>Total Bayar</th>
-        <th>Nama Petugas Bank</th>
-        <th>Status</th>
       </tr>
     </thead>
     <tbody>
       @foreach($payments as $payment)
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td>{{ $payment->customer->nama }}</td>
-          <td>{{ $payment->plnCustomer->nama_pelanggan }}</td>
-          <td>{{ $payment->tanggal_bayar }}</td>
-          <td>@rupiah($payment->biaya_admin)</td>
-          <td>@rupiah($payment->total_bayar)</td>
-          <td>{{ $payment->bank->nama ?? '-' }}</td>
-          <td>{{ strtoupper($payment->status) }}</td>
+          <td>{{ $payment->nama }}</td>
+          <td>{{ $payment->tanggal }}, {{ $payment->bulan }} {{ $payment->tahun }}</td>
+          <td>Rp.{{$payment->jumlah_bayar}}</td>
         </tr>
       @endforeach
     </tbody>

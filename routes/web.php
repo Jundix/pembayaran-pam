@@ -1,124 +1,64 @@
 <?php
 
-use Illuminate\Support\Facades\Route,
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PemasanganController;
+use App\Http\Controllers\PemutusanController;
+use App\Http\Controllers\Admin\PelangganController;
+use App\Http\Controllers\Admin\PenggunaanController;
+use App\Http\Controllers\Admin\TagihanController;
+use Illuminate\Support\Facades\Route;
 
-    App\Http\Controllers\UploadController,
-    App\Http\Controllers\HomeController,
-    App\Http\Controllers\Admin\BillController,
-    App\Http\Controllers\Admin\DashboardController,
-    App\Http\Controllers\Admin\ElectricityUsageController,
-    App\Http\Controllers\Admin\PaymentController,
-    App\Http\Controllers\Admin\PLNCustomerController,
-    App\Http\Controllers\Admin\UserController,
-    App\Http\Controllers\Admin\ReportController,
-    App\Http\Controllers\Admin\LevelController,
-    App\Http\Controllers\Admin\TariffController,
-    App\Http\Controllers\Admin\UserProfileController,
-    App\Http\Controllers\Admin\ActivityLogController,
-    App\Http\Controllers\Admin\PermissionController,
-    App\Http\Controllers\Admin\TransactionController,
-    App\Http\Controllers\Admin\PaymentMethodController,
-    App\Http\Controllers\Admin\TaxTypeController,
-    App\Http\Controllers\Admin\TaxRateController,
-    App\Http\Controllers\MidtransController,
-    App\Http\Controllers\SocialiteController,
-    App\Http\Controllers\PelaporanControllers,
-    App\Http\Controllers\PemasanganControllers,
-    App\Http\Controllers\PemutusanControllers,
-    Illuminate\Support\Facades\Auth;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
 
+Route::get('/login', [LoginController::class, "index"])->name("login");
+Route::post('/login-process', [LoginController::class, "login"])->name("dologin");
 
-//Static Page
-Route::get('/', [HomeController::class, "index"])->name("home");
-Route::get('/about-us', [HomeController::class, "aboutUs"])->name("about_us");
-Route::get('/faq', [HomeController::class, "faq"])->name('faq');
-Route::get('/how-to-pay', [HomeController::class, "howToPay"])->name('how_to_pay');
-Route::get('/pemasangan', [HomeController::class, "Pemasangan"])->name("pemasangan_");
-Route::get('/pemutusan', [HomeController::class, "Pemutusan"])->name("pemutusan_");
-Route::get('/pelaporan', [HomeController::class, "Pelaporan"])->name("pelaporan_");
-Route::get('/profile', [HomeController::class, "profile"])->name("profile");
+Route::get('/register', [RegisterController::class, "index"])->name("register");
+Route::post('/register-process', [RegisterController::class, "register"])->name("doregister");
 
-//Transaction Handler
-Route::group(['prefix' => 'payments', 'as' => 'transaction.'], function(){
-  Route::post('callback', [MidtransController::class, 'notificationHandler'])->name('callback');
-  Route::get('finish', [MidtransController::class, 'finish'])->name('finish');
-  Route::get('unfinish', [MidtransController::class, 'unfinish'])->name('unfinish');
-  Route::get('error', [MidtransController::class, 'error'])->name('error');
+Route::get('/logout', [LoginController::class, "logout"])->name("logout");
+
+Route::group(['middleware' => ['auth', 'user']], function(){
+    Route::get('/', [HomeController::class, "index"])->name("home");
+    Route::get('/about-us', [HomeController::class, "aboutUs"])->name("aboutus");
+    Route::get('/request-pemasangan', [HomeController::class, "pemasangan"])->name("request_pasang");
+    Route::get('/request-pemutusan', [HomeController::class, "pemutusan"])->name("request_pemutusan");
+    Route::get('/history-pembayaran', [HomeController::class, "pembayaran"])->name("pembayaran");
+    Route::resource('/pemasangan', PemasanganController::class);
+    Route::resource('/pemutusan', PemutusanController::class);
+    Route::get('invoice/{id}', [HomeController::class, 'invoice']);
 });
 
-//Upload File
-Route::post('upload', [UploadController::class, "store"])->name('upload.store');
-Route::delete('upload', [UploadController::class, "destroy"])->name('upload.destroy');
-
-//Transaksi
-Route::group(['middleware' => ['auth']], function(){
-  Route::get('/transaction-history', [TransactionController::class, "transactionHistory"])->name("transaction-history");
-  Route::get('/transaction-history/details/{payment?}', [TransactionController::class, "transactionHistory"])->name("transaction-history.details");
-  Route::get('/payment-confirmation/{payment}', [TransactionController::class, "uploadProofOfPayment"])->name('upload-proof-of-payment');
-
-  Route::group(['prefix' => 'payments', 'as' => 'payment.'], function(){
-    Route::get('/{payment_method:slug}/confirm/{payment}', [TransactionController::class, "confirm"])->name('confirm');
-    Route::post('/{payment_method:slug}/confirm/{payment}', [TransactionController::class, "process"])->name('process');
-    Route::get('/{payment}', [TransactionController::class, "index"])->name('index');
-    Route::post('/change/{payment}', [TransactionController::class, "changePaymentMethod"])->name('change-method');
-
-    Route::post('create', [TransactionController::class, "create"])->name('create');
-  });
+Route::group(['middleware' => ['auth', 'admin']], function(){
+    Route::get('/admin', [DashboardController::class, "index"])->name("admin");
+    Route::get('/admin/pemasangan', [PemasanganController::class, "index"])->name("admin_pemasangan");
+    Route::get('/admin/pemutusan', [PemutusanController::class, "index"])->name("admin_pemutusan");
+    Route::post('/admin/pemutusanpelanggan', [PemutusanController::class, "pemutusanPelanggan"])->name("dopemutusan");
+    Route::post('/admin/pemasangan/createpelanggan', [PemasanganController::class, "pelanggan"])->name('create_pelanggan');
+    Route::get('/admin/pemasangan/hapus/{id}', [PemasanganController::class, "hapuspemasangan"])->name('reject_pemasangan');
+    Route::get('/admin/pemutusan/hapus/{id}', [PemutusanController::class, "tolakpemutusan"])->name('reject_pemutusan');
+    Route::get('/admin/pelanggan', [PelangganController::class, "index"])->name("pelanggan");
+    Route::get('admin/pelanggan/delete-pelanggan/{id}', [PelangganController::class, 'delete'])->name('delete_pelanggan');
+    Route::get('admin/penggunaan/delete-penggunaan/{id}', [PenggunaanController::class, 'delete'])->name('delete_penggunaan');
+    Route::get('admin/penggunaan/edit-penggunaan/{id}', [PenggunaanController::class, 'edit'])->name('edit_penggunaan');
+    Route::post('admin/penggunaan/post-edit-penggunaan', [PenggunaanController::class, 'update'])->name('update_penggunaan');
+    Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+    Route::resource('admin/penggunaan', PenggunaanController::class);
+    Route::resource('admin/tagihan', TagihanController::class);
+    Route::get('/admin/laporan', [LaporanController::class, "index"])->name("laporan");
+    Route::post('/admin/cetaklaporan', [LaporanController::class, "printPaymentReports"])->name('cetak_laporan');
 });
-
-// Auth
-Auth::routes(['verify' => true]);
-Route::get('auth/google', [SocialiteController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('auth/google/callback', [SocialiteController::class, 'handleGoogleCallback'])->name('auth.google.callback');
-
-// Admin Panel
-Route::group(["as" => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'admin', 'password.confirm']], function(){
-  Route::get('/', [DashboardController::class, "index"])->name('dashboard');
-  Route::get('/reports', [ReportController::class, "index"])->name('reports');
-  Route::post('/reports/payment', [ReportController::class, "printPaymentReports"])->name('reports.payment');
-
-  // User Profile
-  Route::get('profile', [UserProfileController::class, "index"])->name('profile.index');
-  Route::get('profile/edit', [UserProfileController::class, "edit"])->name('profile.edit');
-  Route::put('profile/update/{id}', [UserProfileController::class, "update"])->name('profile.update');
-
-  // Dashboard setting
-  Route::get('settings', [DashboardController::class, "settings"])->name('settings');
-
-  // Data Master
-  Route::delete('usages/destroy', [ElectricityUsageController::class, "massDestroy"])->name('usages.massDestroy');
-  Route::delete('levels/destroy', [LevelController::class, "massDestroy"])->name('levels.massDestroy');
-  Route::delete('tariffs/destroy', [TariffController::class, "massDestroy"])->name('tariffs.massDestroy');
-  Route::delete('pln-customers/destroy', [PlnCustomerController::class, "massDestroy"])->name('pln-customers.massDestroy');
-  Route::delete('permissions/destroy', [PermissionController::class, "massDestroy"])->name('permissions.massDestroy');
-  Route::delete('users/destroy', [UserController::class, "massDestroy"])->name('users.massDestroy');
-  Route::delete('tax-types/destroy', [TaxTypeController::class, "massDestroy"])->name('tax-types.massDestroy');
-  Route::delete('tax-rates/destroy', [TaxRateController::class, "massDestroy"])->name('tax-rates.massDestroy');
-
-  Route::resource('activity-logs', ActivityLogController::class)->except('create', 'store', 'edit', 'update', 'destroy');
-  Route::resources([
-    'payments' => PaymentController::class,
-    'bills' => BillController::class,
-    'levels' => LevelController::class,
-    'usages' => ElectricityUsageController::class,
-    'tariffs' => TariffController::class,
-    'pln-customers' => PLNCustomerController::class,
-    'users' => UserController::class,
-    'permissions' => PermissionController::class,
-    'payment-methods' => PaymentMethodController::class,
-    'tax-rates' => TaxRateController::class,
-    'tax-types' => TaxTypeController::class,
-  ]);
-});
-Route::resource('pelaporans', PelaporanControllers::class);
-Route::resource('pemasangans', PemasanganControllers::class);
-Route::resource('pemutusans', PemutusanControllers::class);
-Route::post('/pemasangans/createpelanggan', [PemasanganControllers::class, "pelanggan"])->name('pemasangans.pelanggan');
-Route::post('pln-customers/create', [PLNCustomerController::class, "store"]);
-Route::get('pemasangans/hapus/{id}', [PemasanganControllers::class, 'hapuspemasangan'])->name('hapuspemasangan')->middleware('auth');
-Route::get('pembayaran', [HomeController::class, 'Pembayaran'])->name('pembayaran');
-Route::post('pembayaran/continue', [HomeController::class, 'lanjutBayar']);
-Route::get('invoice', [HomeController::class, 'invoice']);
-Route::post('pemutusans/customer', [PemutusanControllers::class, 'pemutusanCustomer']);
-

@@ -12,7 +12,7 @@
           </svg>
           Laporan Pembayaran
         </div>
-        <form action="{{route('admin.reports.payment')}}" class="form-row" method="POST">
+        <form action="{{route('cetak_laporan')}}" class="form-row" method="POST">
           @csrf
           <h4 class="mb-2">Cetak Data Per Tanggal</h4>
           <div class="col-12 col-md-10 mb-2 mb-md-4">
@@ -80,22 +80,6 @@
               </svg>
               Cetak
             </button>
-          </div>
-          <div class="col-md-3 form-group">
-            <label for="selectPaymentStatus">Status Pembayaran</label>
-            <select name="status" class="form-control selectpicker @error('payment_status')
-                is-invalid
-            @enderror" id="selectPaymentStatus">
-              <option value="*" selected>semua</option>
-              @foreach(config('enum.payment_status') as $status)
-                <option value="{{$status}}" {{old('payment_status') == $status ? 'selected' : ''}}>
-                  {{$status}}
-                </option>
-              @endforeach
-            </select>
-            @error('payment_status')
-                <span class="invalid-feedback">{{$message}}</span>
-            @enderror
           </div>
         </form>
       </div>

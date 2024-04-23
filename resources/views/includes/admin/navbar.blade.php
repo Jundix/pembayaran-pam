@@ -13,7 +13,7 @@
 		>
 			<span class="navbar-toggler-icon"></span>
 		</button>
-		
+
 		<div class="collapse navbar-collapse" id="navbarDashboard">
 			<ul class="navbar-nav mx-auto">
 				<li class="nav-item {{Route::is('admin.dashboard') ? 'active' : ''}}">
@@ -85,7 +85,7 @@
 						<a href="{{ route('logout') }}" class="dropdown-item">Logout</a>
 					</li>
 				</ul>
-				
+
 				<img src="{{ auth()->user()->gambar ? asset('assets/img/avatar/'.auth()->id.'/'.auth()->user()->gambar) : "https://ui-avatars.com/api/?name=".auth()->user()->username }}" class="rounded-circle d-lg-inline-block d-none ml-3" alt="Avatar">
 			</div>
 		</div>

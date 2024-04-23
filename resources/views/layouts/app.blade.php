@@ -8,7 +8,7 @@
     @stack('prepend-style')
     @include('includes.style')
     @stack('addon-style')
-    @livewireStyles
+    
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.8.1/dist/alpine.min.js" defer></script>
     <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="SB-Mid-client-Dwr6Hx8XJpCN6Ml1"></script> 
   </head>
@@ -20,7 +20,6 @@
     @stack('prepend-script')
     @include('includes.script')
     @include('sweetalert::alert')
-    @livewireScripts
     @stack('addon-script')
     <!--Start of Tawk.to Script-->
       

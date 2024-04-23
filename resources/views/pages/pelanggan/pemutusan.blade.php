@@ -7,7 +7,7 @@
     <h3 class="mb-4">Pemutusan</h3>
     <div class="card">
       <div class="card-body">
-      <form action="{{ route('pemutusans.store') }}" method="POST" enctype="multipart/form-data">
+      <form action="{{ route('pemutusan.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @foreach($users as $u)
         <div class="form-row">
